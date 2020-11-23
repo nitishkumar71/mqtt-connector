@@ -1,6 +1,17 @@
-FROM teamserverless/license-check:0.3.6 as license-check
+ARG goversion=1.13
 
-FROM golang:1.13 as builder
+FROM teamserverless/license-check:0.3.9 as license-check
+
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:$goversion as builder
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+
+ARG GIT_COMMIT="000000"
+ARG VERSION="dev"
+
 ENV CGO_ENABLED=0
 ENV GO111MODULE=off
 
@@ -18,7 +29,7 @@ RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
 RUN go test -v ./...
 RUN VERSION=$(git describe --all --exact-match `git rev-parse HEAD` | grep tags | sed 's/tags\///') && \
   GIT_COMMIT=$(git rev-list -1 HEAD) && \
-  env ${OPTS} CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w \
+  env ${OPTS} CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags "-s -w \
   -X github.com/openfaas-incubator/mqtt-connector/pkg/version.Release=${VERSION} \
   -X github.com/openfaas-incubator/mqtt-connector/pkg/version.SHA=${GIT_COMMIT}" \
   -a -installsuffix cgo -o connector . && \
