@@ -75,15 +75,15 @@ RUN env ${OPTS} GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 \
   adduser --system --ingroup app app && \
   mkdir /scratch-tmp
 
-FROM builder as arm64
-RUN env ${OPTS} GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
-    go build --ldflags "-s -w \
-    -X github.com/openfaas/mqtt-connector/main.GitCommit=${GIT_COMMIT} \
-    -X github.com/openfaas/mqtt-connector/main.Version=${VERSION}" \
-    -a -installsuffix cgo -o connector . && \
-  addgroup --system app && \
-  adduser --system --ingroup app app && \
-  mkdir /scratch-tmp
+# FROM builder as arm64
+# RUN env ${OPTS} GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
+#     go build --ldflags "-s -w \
+#     -X github.com/openfaas/mqtt-connector/main.GitCommit=${GIT_COMMIT} \
+#     -X github.com/openfaas/mqtt-connector/main.Version=${VERSION}" \
+#     -a -installsuffix cgo -o connector . && \
+#   addgroup --system app && \
+#   adduser --system --ingroup app app && \
+#   mkdir /scratch-tmp
 
 # Release stage
 FROM scratch
@@ -108,10 +108,10 @@ COPY --from=windows /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=windows --chown=app:app /scratch-tmp /tmp/
 COPY --from=windows /go/src/github.com/openfaas-incubator/mqtt-connector/connector /usr/bin/connector-windows
 
-COPY --from=arm64 /etc/passwd /etc/group /etc/
-COPY --from=arm64 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=arm64 --chown=app:app /scratch-tmp /tmp/
-COPY --from=arm64 /go/src/github.com/openfaas-incubator/mqtt-connector/connector /usr/bin/connector-arm64
+# COPY --from=arm64 /etc/passwd /etc/group /etc/
+# COPY --from=arm64 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# COPY --from=arm64 --chown=app:app /scratch-tmp /tmp/
+# COPY --from=arm64 /go/src/github.com/openfaas-incubator/mqtt-connector/connector /usr/bin/connector-arm64
 
 USER app
 
