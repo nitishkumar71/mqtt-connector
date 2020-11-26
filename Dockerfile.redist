@@ -36,11 +36,7 @@ RUN ls && go test -v ./...
 # use multiple stages here because buildkit will run these in parallel,
 # if possible
 FROM builder as linux
-RUN env ${OPTS} GOOS=linux CGO_ENABLED=0 \
-    go build --ldflags "-s -w \
-    -X github.com/openfaas/mqtt-connector/main.GitCommit=${GIT_COMMIT} \
-    -X github.com/openfaas/mqtt-connector/main.Version=${VERSION}" \
-    -a -installsuffix cgo -o connector . 
+RUN env ${OPTS} GOOS=linux CGO_ENABLED=0 go build --ldflags "-s -w -X github.com/openfaas/mqtt-connector/main.GitCommit=${GIT_COMMIT} -X github.com/openfaas/mqtt-connector/main.Version=${VERSION}" -a -installsuffix cgo -o connector . 
   #   && \
   # addgroup --system app && \
   # adduser --system --ingroup app app && \
