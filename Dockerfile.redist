@@ -2,27 +2,22 @@ ARG goversion=1.13
 
 FROM teamserverless/license-check:0.3.9 as license-check
 
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:$goversion as builder
-
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
+FROM golang:$goversion as builder
 
 ARG GIT_COMMIT="000000"
 ARG VERSION="dev"
-
-COPY --from=license-check /license-check /usr/bin/
 
 ARG CGO_ENABLED=0
 ARG GO111MODULE="on"
 ENV GOFLAGS=-mod=vendor
 ARG GOPROXY=""
 
+COPY --from=license-check /license-check /usr/bin/
+
 RUN mkdir -p /go/src/github.com/openfaas-incubator/mqtt-connector
 WORKDIR /go/src/github.com/openfaas-incubator/mqtt-connector
-COPY vendor              vendor
-COPY main.go             .
+COPY vendor vendor
+COPY main.go .
 COPY Gopkg.lock .
 COPY Gopkg.toml .
 
@@ -36,7 +31,7 @@ RUN ls && go test -v ./...
 # use multiple stages here because buildkit will run these in parallel,
 # if possible
 FROM builder as linux
-RUN ls && env ${OPTS} GOOS=linux CGO_ENABLED=0 \
+RUN env ${OPTS} GOOS=linux CGO_ENABLED=0 \
     go build --ldflags "-s -w \
     -X github.com/openfaas/mqtt-connector/main.GitCommit=${GIT_COMMIT} \
     -X github.com/openfaas/mqtt-connector/main.Version=${VERSION}" \
